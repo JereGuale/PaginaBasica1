@@ -1,5 +1,5 @@
 const express = require('express');
-const pool = require('./db');
+const supabase = require('./supabase');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
@@ -20,8 +20,13 @@ app.use(express.static('public'));
 // Obtener todos los usuarios
 app.get('/api/usuarios', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM usuarios ORDER BY fecha_registro DESC');
-        res.json(result.rows);
+        const { data, error } = await supabase
+            .from('usuarios')
+            .select('*')
+            .order('fecha_registro', { ascending: false });
+        
+        if (error) throw error;
+        res.json(data);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -31,12 +36,19 @@ app.get('/api/usuarios', async (req, res) => {
 app.get('/api/usuarios/:id', async (req, res) => {
     const id = req.params.id;
     try {
-        const result = await pool.query('SELECT * FROM usuarios WHERE id = $1', [id]);
-        if (result.rows.length > 0) {
-            res.json(result.rows[0]);
-        } else {
-            res.status(404).json({ error: 'Usuario no encontrado' });
+        const { data, error } = await supabase
+            .from('usuarios')
+            .select('*')
+            .eq('id', id)
+            .single();
+        
+        if (error) {
+            if (error.code === 'PGRST116') {
+                return res.status(404).json({ error: 'Usuario no encontrado' });
+            }
+            throw error;
         }
+        res.json(data);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -49,20 +61,32 @@ app.post('/api/usuarios', async (req, res) => {
         return res.status(400).json({ error: 'Nombre y email son requeridos' });
     }
     try {
-        const result = await pool.query(
-            'INSERT INTO usuarios (nombre, email, descripcion, telefono) VALUES ($1, $2, $3, $4) RETURNING id',
-            [nombre, email, descripcion || '', telefono || '']
-        );
+        const { data, error } = await supabase
+            .from('usuarios')
+            .insert([
+                {
+                    nombre,
+                    email,
+                    descripcion: descripcion || '',
+                    telefono: telefono || ''
+                }
+            ])
+            .select('id')
+            .single();
+        
+        if (error) {
+            if (error.code === '23505') { // unique_violation
+                return res.status(400).json({ error: 'El email ya está registrado' });
+            }
+            throw error;
+        }
+        
         res.status(201).json({
-            id: result.rows[0].id,
+            id: data.id,
             message: 'Usuario registrado exitosamente'
         });
     } catch (err) {
-        if (err.code === '23505') { // unique_violation
-            res.status(400).json({ error: 'El email ya está registrado' });
-        } else {
-            res.status(500).json({ error: err.message });
-        }
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -71,11 +95,20 @@ app.put('/api/usuarios/:id', async (req, res) => {
     const id = req.params.id;
     const { nombre, email, descripcion, telefono } = req.body;
     try {
-        const result = await pool.query(
-            'UPDATE usuarios SET nombre = $1, email = $2, descripcion = $3, telefono = $4 WHERE id = $5',
-            [nombre, email, descripcion, telefono, id]
-        );
-        if (result.rowCount === 0) {
+        const { data, error } = await supabase
+            .from('usuarios')
+            .update({
+                nombre,
+                email,
+                descripcion,
+                telefono
+            })
+            .eq('id', id)
+            .select('id');
+        
+        if (error) throw error;
+        
+        if (data.length === 0) {
             res.status(404).json({ error: 'Usuario no encontrado' });
         } else {
             res.json({ message: 'Usuario actualizado exitosamente' });
@@ -89,8 +122,15 @@ app.put('/api/usuarios/:id', async (req, res) => {
 app.delete('/api/usuarios/:id', async (req, res) => {
     const id = req.params.id;
     try {
-        const result = await pool.query('DELETE FROM usuarios WHERE id = $1', [id]);
-        if (result.rowCount === 0) {
+        const { data, error } = await supabase
+            .from('usuarios')
+            .delete()
+            .eq('id', id)
+            .select('id');
+        
+        if (error) throw error;
+        
+        if (data.length === 0) {
             res.status(404).json({ error: 'Usuario no encontrado' });
         } else {
             res.json({ message: 'Usuario eliminado exitosamente' });
@@ -111,12 +151,10 @@ app.listen(PORT, () => {
     console.log(`Visita http://localhost:${PORT} para ver la aplicación`);
 });
 
-// Cerrar pool de PostgreSQL al cerrar la aplicación
+// Cerrar aplicación
 process.on('SIGINT', () => {
-    pool.end(() => {
-        console.log('Conexión a la base de datos PostgreSQL cerrada');
-        process.exit(0);
-    });
+    console.log('Aplicación cerrada');
+    process.exit(0);
 });
 
 
