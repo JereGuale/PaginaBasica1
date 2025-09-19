@@ -149,6 +149,7 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
     console.log(`Visita http://localhost:${PORT} para ver la aplicación`);
+    console.log(`Usando Supabase API para la base de datos`);
 });
 
 // Cerrar aplicación
