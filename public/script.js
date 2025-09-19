@@ -3,7 +3,7 @@ let users = [];
 let editingUserId = null;
 
 // Elementos del DOM
-const userForm = document.getElementById('userForm');
+const userForm = document.getElementById('registroForm');
 const editForm = document.getElementById('editForm');
 const usersList = document.getElementById('usersList');
 const loading = document.getElementById('loading');
