@@ -1,13 +1,11 @@
-<div id="notification" class="notification" style="display:none"></div>
-<div id="loading" style="display:none"></div>
-<div id="noUsers" style="display:none">No hay usuarios registrados.</div>// Variables globales
+// Variables globales
 let users = [];
 let editingUserId = null;
 
 // Elementos del DOM
 const userForm = document.getElementById('registroForm');
 const editForm = document.getElementById('editForm');
-const usersList = document.getElementById('usersList');
+const usersList = document.getElementById('usuariosList');
 const loading = document.getElementById('loading');
 const noUsers = document.getElementById('noUsers');
 const refreshBtn = document.getElementById('actualizarBtn');
@@ -27,23 +25,16 @@ function setupEventListeners() {
     // Formulario principal
     userForm.addEventListener('submit', handleSubmit);
     clearFormBtn.addEventListener('click', clearForm);
-    
-    // Formulario de edición
-    editForm.addEventListener('submit', handleEditSubmit);
-    cancelEditBtn.addEventListener('click', closeEditModal);
-    
     // Botón de actualizar
     refreshBtn.addEventListener('click', loadUsers);
-    
+    // Formulario de edición
+    editForm.addEventListener('submit', handleEditSubmit);
     // Cerrar modal al hacer clic fuera
     window.addEventListener('click', function(event) {
         if (event.target === editModal) {
             closeEditModal();
         }
     });
-    
-    // Cerrar modal con la X
-    document.querySelector('.close').addEventListener('click', closeEditModal);
 }
 
 // Cargar usuarios desde la API
@@ -297,4 +288,5 @@ function validateEmail(input) {
         input.style.borderColor = '#e0e0e0';
     }
 }
+
 
