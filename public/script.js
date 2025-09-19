@@ -1,4 +1,6 @@
-// Variables globales
+<div id="notification" class="notification" style="display:none"></div>
+<div id="loading" style="display:none"></div>
+<div id="noUsers" style="display:none">No hay usuarios registrados.</div>// Variables globales
 let users = [];
 let editingUserId = null;
 
@@ -8,7 +10,7 @@ const editForm = document.getElementById('editForm');
 const usersList = document.getElementById('usersList');
 const loading = document.getElementById('loading');
 const noUsers = document.getElementById('noUsers');
-const refreshBtn = document.getElementById('refreshUsers');
+const refreshBtn = document.getElementById('actualizarBtn');
 const clearFormBtn = document.getElementById('clearForm');
 const editModal = document.getElementById('editModal');
 const cancelEditBtn = document.getElementById('cancelEdit');
