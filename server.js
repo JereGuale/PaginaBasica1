@@ -1,9 +1,19 @@
+// Cargar variables de entorno
 require('dotenv').config();
+
 const express = require('express');
-const supabase = require('./supabase');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
+
+// Importar Supabase después de cargar dotenv
+let supabase;
+try {
+  supabase = require('./supabase');
+} catch (error) {
+  console.error('Error cargando Supabase:', error);
+  process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +29,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 // --- Rutas API ---
 app.get('/api/usuarios', async (req, res) => {
   try {
+    if (!supabase) {
+      return res.status(500).json({ error: 'Base de datos no configurada' });
+    }
+    
     const { data, error } = await supabase
       .from('usuarios')
       .select('*')
@@ -26,6 +40,7 @@ app.get('/api/usuarios', async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (err) {
+    console.error('Error en /api/usuarios:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -33,6 +48,10 @@ app.get('/api/usuarios', async (req, res) => {
 app.get('/api/usuarios/:id', async (req, res) => {
   const id = req.params.id;
   try {
+    if (!supabase) {
+      return res.status(500).json({ error: 'Base de datos no configurada' });
+    }
+    
     const { data, error } = await supabase
       .from('usuarios')
       .select('*')
@@ -46,6 +65,7 @@ app.get('/api/usuarios/:id', async (req, res) => {
     }
     res.json(data);
   } catch (err) {
+    console.error('Error en /api/usuarios/:id:', err);
     res.status(500).json({ error: err.message });
   }
 });
