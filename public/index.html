@@ -1,102 +1,184 @@
+
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Septimoa.com - Registro de Usuarios</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Septimoa - Panel de Gestión Profesional</title>
+  <meta name="description" content="Sistema profesional de gestión de usuarios con interfaz moderna" />
+  
+  <!-- Fuentes profesionales -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Iconos modernos -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  
+  <!-- Estilos personalizados -->
+  <link rel="stylesheet" href="/styles.css" />
 </head>
-<body style="background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);">
-    <div class="container py-5">
-    <h1 class="mb-4 text-center text-primary"><i class="bi bi-person-circle"></i> Septimoa.com</h1>
-    <p class="text-center text-secondary">Registro y gestión de usuarios</p>
-    <div id="notification" class="notification" style="display:none"></div>
-    <div id="loading" style="display:none"></div>
-    <div id="noUsers" style="display:none">No hay usuarios registrados.</div>
-        <div class="card shadow mb-4" style="border-radius: 1rem;">
-            <div class="card-header bg-primary text-white" style="border-radius: 1rem 1rem 0 0;">
-                <h2><i class="bi bi-person-plus"></i> Registro de Usuario</h2>
-            </div>
-            <div class="card-body">
-                <form id="registroForm">
-                    <div class="mb-3">
-                        <label for="nombre" class="form-label">Nombre Completo *</label>
-                        <input type="text" class="form-control" id="nombre" name="nombre" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email *</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="telefono" class="form-label">Teléfono</label>
-                        <input type="text" class="form-control" id="telefono" name="telefono">
-                    </div>
-                    <div class="mb-3">
-                        <label for="descripcion" class="form-label">Descripción</label>
-                        <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-person-plus"></i> Registrar Usuario</button>
-                    <button type="button" id="clearForm" class="btn btn-secondary">Limpiar</button>
-                </form>
-            </div>
+<body>
+  <!-- Barra de navegación profesional -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <div class="brand-icon">
+          <i class="fas fa-cube"></i>
         </div>
-
-        <div class="card shadow mb-4" style="border-radius: 1rem;">
-            <div class="card-header bg-info text-white" style="border-radius: 1rem 1rem 0 0;">
-                <h2><i class="bi bi-people"></i> Usuarios Registrados</h2>
-            </div>
-            <div class="card-body">
-                <button id="actualizarBtn" class="btn btn-info mb-3"><i class="bi bi-arrow-clockwise"></i> Actualizar</button>
-                <div id="usuariosList">
-                    <span class="spinner-border spinner-border-sm"></span> Cargando usuarios...
-                </div>
-            </div>
+        <span class="brand-text">Septimoa</span>
+      </div>
+      
+      <div class="nav-controls">
+        <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
+          <i class="fas fa-moon"></i>
+        </button>
+        <div class="user-menu">
+          <div class="user-avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <span class="user-name">Admin</span>
         </div>
-
-        <footer class="text-center mt-5">
-            <small class="text-muted">© 2024 Septimoa.com - Todos los derechos reservados</small>
-        </footer>
+      </div>
     </div>
+  </nav>
 
-    <!-- Modal de Edición -->
-    <div id="editModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="bi bi-person-gear"></i> Editar Usuario</h3>
-                <span class="close" onclick="closeEditModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <form id="editForm">
-                    <input type="hidden" id="editId">
-                    <div class="mb-3">
-                        <label for="editNombre" class="form-label">Nombre Completo *</label>
-                        <input type="text" class="form-control" id="editNombre" name="nombre" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editEmail" class="form-label">Email *</label>
-                        <input type="email" class="form-control" id="editEmail" name="email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editTelefono" class="form-label">Teléfono</label>
-                        <input type="text" class="form-control" id="editTelefono" name="telefono">
-                    </div>
-                    <div class="mb-3">
-                        <label for="editDescripcion" class="form-label">Descripción</label>
-                        <textarea class="form-control" id="editDescripcion" name="descripcion" rows="3"></textarea>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Actualizar Usuario</button>
-                        <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancelar</button>
-                    </div>
-                </form>
-            </div>
+  <!-- Contenido principal -->
+  <main class="main-content">
+    <!-- Header de la página -->
+    <header class="page-header">
+      <div class="header-content">
+        <div class="header-info">
+          <h1 class="page-title">
+            <i class="fas fa-users"></i>
+            Gestión de Usuarios
+          </h1>
+          <p class="page-subtitle">Panel profesional de administración de usuarios</p>
         </div>
-    </div>
+        <div class="header-stats">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number" id="totalUsers">0</span>
+              <span class="stat-label">Usuarios</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number" id="todayUsers">0</span>
+              <span class="stat-label">Hoy</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
 
-    <script src="script.js"></script>
+    <!-- Contenido principal -->
+    <div class="content-grid">
+      <!-- Panel de registro -->
+      <section class="register-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            <i class="fas fa-user-plus"></i>
+            Nuevo Usuario
+          </h2>
+          <p class="panel-subtitle">Registra un nuevo usuario en el sistema</p>
+        </div>
+        
+        <form id="registroForm" class="register-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="nombre" class="form-label">
+                <i class="fas fa-user"></i>
+                Nombre Completo
+              </label>
+              <input type="text" id="nombre" name="nombre" class="form-input" required />
+            </div>
+            
+            <div class="form-group">
+              <label for="email" class="form-label">
+                <i class="fas fa-envelope"></i>
+                Email
+              </label>
+              <input type="email" id="email" name="email" class="form-input" required />
+            </div>
+            
+            <div class="form-group">
+              <label for="telefono" class="form-label">
+                <i class="fas fa-phone"></i>
+                Teléfono
+              </label>
+              <input type="tel" id="telefono" name="telefono" class="form-input" />
+            </div>
+            
+            <div class="form-group full-width">
+              <label for="descripcion" class="form-label">
+                <i class="fas fa-file-text"></i>
+                Descripción
+              </label>
+              <textarea id="descripcion" name="descripcion" class="form-textarea" rows="3"></textarea>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="clearForm">
+              <i class="fas fa-eraser"></i>
+              Limpiar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i>
+              Registrar Usuario
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Panel de usuarios -->
+      <section class="users-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            <i class="fas fa-users"></i>
+            Usuarios Registrados
+          </h2>
+          <div class="panel-actions">
+            <button class="btn btn-outline" id="actualizarBtn">
+              <i class="fas fa-sync-alt"></i>
+              Actualizar
+            </button>
+          </div>
+        </div>
+        
+        <div class="users-content">
+          <div id="loading" class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Cargando usuarios...</p>
+          </div>
+          
+          <div id="noUsers" class="empty-state">
+            <div class="empty-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <h3>No hay usuarios registrados</h3>
+            <p>Comienza registrando tu primer usuario</p>
+          </div>
+          
+          <div id="usuariosList" class="users-list"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Notificaciones -->
+  <div id="notification" class="notification"></div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="/script.js" defer></script>
 </body>
 </html>
-

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const supabase = require('./supabase');
 const bodyParser = require('body-parser');
@@ -11,152 +12,122 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));
 
-// La migración y conexión se realiza con migrate.js y db.js
+// ✨ Usa ruta absoluta a /public
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Rutas API
-
-// Obtener todos los usuarios
+// --- Rutas API ---
 app.get('/api/usuarios', async (req, res) => {
-    try {
-        const { data, error } = await supabase
-            .from('usuarios')
-            .select('*')
-            .order('fecha_registro', { ascending: false });
-        
-        if (error) throw error;
-        res.json(data);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+  try {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('*')
+      .order('fecha_registro', { ascending: false });
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// Obtener un usuario por ID
 app.get('/api/usuarios/:id', async (req, res) => {
-    const id = req.params.id;
-    try {
-        const { data, error } = await supabase
-            .from('usuarios')
-            .select('*')
-            .eq('id', id)
-            .single();
-        
-        if (error) {
-            if (error.code === 'PGRST116') {
-                return res.status(404).json({ error: 'Usuario no encontrado' });
-            }
-            throw error;
-        }
-        res.json(data);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+  const id = req.params.id;
+  try {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('*')
+      .eq('id', id)
+      .single();
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return res.status(404).json({ error: 'Usuario no encontrado' });
+      }
+      throw error;
     }
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// Crear nuevo usuario
 app.post('/api/usuarios', async (req, res) => {
-    const { nombre, email, descripcion, telefono } = req.body;
-    if (!nombre || !email) {
-        return res.status(400).json({ error: 'Nombre y email son requeridos' });
+  const { nombre, email, descripcion, telefono } = req.body;
+  if (!nombre || !email) {
+    return res.status(400).json({ error: 'Nombre y email son requeridos' });
+  }
+  try {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .insert([{ nombre, email, descripcion: descripcion || '', telefono: telefono || '' }])
+      .select('id')
+      .single();
+    if (error) {
+      if (error.code === '23505') {
+        return res.status(400).json({ error: 'El email ya está registrado' });
+      }
+      throw error;
     }
-    try {
-        const { data, error } = await supabase
-            .from('usuarios')
-            .insert([
-                {
-                    nombre,
-                    email,
-                    descripcion: descripcion || '',
-                    telefono: telefono || ''
-                }
-            ])
-            .select('id')
-            .single();
-        
-        if (error) {
-            if (error.code === '23505') { // unique_violation
-                return res.status(400).json({ error: 'El email ya está registrado' });
-            }
-            throw error;
-        }
-        
-        res.status(201).json({
-            id: data.id,
-            message: 'Usuario registrado exitosamente'
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    res.status(201).json({ id: data.id, message: 'Usuario registrado exitosamente' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// Actualizar usuario
 app.put('/api/usuarios/:id', async (req, res) => {
-    const id = req.params.id;
-    const { nombre, email, descripcion, telefono } = req.body;
-    try {
-        const { data, error } = await supabase
-            .from('usuarios')
-            .update({
-                nombre,
-                email,
-                descripcion,
-                telefono
-            })
-            .eq('id', id)
-            .select('id');
-        
-        if (error) throw error;
-        
-        if (data.length === 0) {
-            res.status(404).json({ error: 'Usuario no encontrado' });
-        } else {
-            res.json({ message: 'Usuario actualizado exitosamente' });
-        }
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+  const id = req.params.id;
+  const { nombre, email, descripcion, telefono } = req.body;
+  try {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .update({ nombre, email, descripcion, telefono })
+      .eq('id', id)
+      .select('id');
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      res.status(404).json({ error: 'Usuario no encontrado' });
+    } else {
+      res.json({ message: 'Usuario actualizado exitosamente' });
     }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// Eliminar usuario
 app.delete('/api/usuarios/:id', async (req, res) => {
-    const id = req.params.id;
-    try {
-        const { data, error } = await supabase
-            .from('usuarios')
-            .delete()
-            .eq('id', id)
-            .select('id');
-        
-        if (error) throw error;
-        
-        if (data.length === 0) {
-            res.status(404).json({ error: 'Usuario no encontrado' });
-        } else {
-            res.json({ message: 'Usuario eliminado exitosamente' });
-        }
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+  const id = req.params.id;
+  try {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .delete()
+      .eq('id', id)
+      .select('id');
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      res.status(404).json({ error: 'Usuario no encontrado' });
+    } else {
+      res.json({ message: 'Usuario eliminado exitosamente' });
     }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// Servir la página principal
+// Página principal
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Iniciar servidor
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
-    console.log(`Visita http://localhost:${PORT} para ver la aplicación`);
-    console.log(`Usando Supabase API para la base de datos`);
-    console.log(`Deploy: ${new Date().toISOString()}`);
-});
+// ⚠️ En Vercel (serverless) NO uses app.listen. Exporta el handler:
+if (!process.env.VERCEL) {
+  // Solo en local
+  app.listen(PORT, () => {
+    console.log(`Servidor local en http://localhost:${PORT}`);
+  });
+}
 
-// Cerrar aplicación
-process.on('SIGINT', () => {
-    console.log('Aplicación cerrada');
-    process.exit(0);
-});
+// Para Vercel:
+module.exports = app;
+// O alternativamente:
+// module.exports = (req, res) => app(req, res);
 
 
